@@ -4,7 +4,7 @@ import { config as dotenvConfig } from 'dotenv';
 dotenvConfig();
 
 const config = {
-  // Exchange
+  // Exchange Bybit
   apiKey: process.env.BYBIT_API_KEY,
   apiSecret: process.env.BYBIT_API_SECRET,
   symbol: 'BTCUSDT',
