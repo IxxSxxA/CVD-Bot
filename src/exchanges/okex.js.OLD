@@ -1,0 +1,94 @@
+import Exchange from '../exchange.js';
+
+export default class Okex extends Exchange {
+  id = 'OKEX';
+
+  constructor() {
+    super();
+    this.specs = {};
+    this.inversed = {};
+    this.types = {};
+    this.endpoints = {
+      PRODUCTS: [
+        'https://www.okx.com/api/v5/public/instruments?instType=SPOT',
+        'https://www.okx.com/api/v5/public/instruments?instType=FUTURES',
+        'https://www.okx.com/api/v5/public/instruments?instType=SWAP',
+      ],
+    };
+  }
+
+  async getUrl() {
+    return 'wss://ws.okx.com:8443/ws/v5/public';
+  }
+
+  formatProducts(response) {
+    const products = [];
+    const specs = {};
+    const inversed = {};
+    const types = {};
+    for (const data of response) {
+      for (const product of data.data) {
+        const type = product.instType;
+        const pair = product.instId;
+        if (type === 'FUTURES' || type === 'SWAP') {
+          specs[pair] = +product.ctVal;
+          if (product.ctType === 'inverse') inversed[pair] = true;
+        }
+        types[pair] = type;
+        products.push(pair);
+      }
+    }
+    this.specs = specs;
+    this.inversed = inversed;
+    this.types = types;
+    return products;
+  }
+
+  async subscribe(api, pair) {
+    if (!(await super.subscribe(api, pair))) return;
+    api.send(JSON.stringify({
+      op: 'subscribe',
+      args: [{ channel: 'trades', instId: pair }],
+    }));
+    return true;
+  }
+
+  async unsubscribe(api, pair) {
+    if (!(await super.unsubscribe(api, pair))) return;
+    api.send(JSON.stringify({
+      op: 'unsubscribe',
+      args: [{ channel: 'trades', instId: pair }],
+    }));
+    return true;
+  }
+
+  formatTrade(trade) {
+    let size = trade.sz;
+    if (this.specs[trade.instId]) {
+      size = (trade.sz * this.specs[trade.instId]) / (this.inversed[trade.instId] ? trade.px : 1);
+    }
+    return {
+      exchange: this.id,
+      pair: trade.instId,
+      timestamp: +trade.ts,
+      price: +trade.px,
+      size: +size,
+      side: trade.side,
+    };
+  }
+
+  onMessage(event, api) {
+    let json;
+    try {
+      json = JSON.parse(event.data);
+    } catch (err) {
+      console.log(`[${this.id}] Invalid JSON received:`, event.data);
+      return;
+    }
+    if (!json?.data || json.arg?.channel !== 'trades') {
+      console.log(`[${this.id}] Non-trade message:`, json);
+      return;
+    }
+    this.emitTrades(api.id, json.data.map(trade => this.formatTrade(trade)));
+  }
+}

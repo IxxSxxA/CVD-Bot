@@ -1,0 +1,56 @@
+const WebSocket = require('ws');
+
+class CoinbaseCVD {
+  constructor() {
+    this.cumulativeDelta = 0;
+    this.wsUrl = 'wss://ws-feed.exchange.coinbase.com';
+    this.subscription = JSON.stringify({
+      type: 'subscribe',
+      product_ids: ['BTC-USD'],
+      channels: ['matches']
+    });
+    this.connect();
+  }
+
+  connect() {
+    this.ws = new WebSocket(this.wsUrl);
+
+    this.ws.on('open', () => {
+      this.ws.send(this.subscription);
+    });
+
+    this.ws.on('message', (data) => {
+      try {
+        const parsedData = JSON.parse(data);
+        if (parsedData.type === 'match' && parsedData.product_id === 'BTC-USD') {
+          const volume = parseFloat(parsedData.size);
+          const side = parsedData.side === 'buy' ? 'Buy' : 'Sell'; // Uniforma a maiuscolo
+          const delta = side === 'Buy' ? volume : -volume;
+          this.cumulativeDelta += delta;
+          console.log(`Coinbase - Trade: ${side}, Volume: ${volume.toFixed(8)}, CVD: ${this.cumulativeDelta.toFixed(8)}`);
+        }
+      } catch (error) {
+        console.error('Errore parsing messaggio WebSocket Coinbase:', error);
+      }
+    });
+
+    this.ws.on('error', (error) => {
+      console.error('Errore WebSocket Coinbase:', error);
+    });
+
+    this.ws.on('close', (code, reason) => {
+      console.log('Connessione WebSocket Coinbase chiusa. Codice:', code, 'Motivo:', reason.toString());
+      setTimeout(() => this.connect(), 5000);
+    });
+  }
+
+  getCVD() {
+    return this.cumulativeDelta;
+  }
+
+  resetCVD() {
+    this.cumulativeDelta = 0;
+  }
+}
+
+module.exports = CoinbaseCVD;
