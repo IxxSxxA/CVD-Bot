@@ -16,8 +16,12 @@ class DataAggregator {
     this.startTime = Date.now();
     this.timeframeMs = this.getTimeframeMs(config.timeFrame);
     this.anchorPeriodMs = this.getTimeframeMs(config.anchorPeriod);
+    // Aggiungo buffer per aggregazione ultimo dato
+    this.lastTradeBuffer = []; // Buffer per i trade ricevuti nell'ultimo mezzo secondo
+    this.lastAggregatedData = null; // Ultimo dato aggregato salvato
     console.log(chalk.green(`Bot partito alle ${new Date(this.startTime).toLocaleTimeString()}`));
     this.startPeriodicSave();
+    this.startLastDataAggregation(); // Avvio aggregazione ultimo dato
   }
 
   getTimeframeMs(timeframe) {
@@ -39,6 +43,9 @@ class DataAggregator {
     console.log(chalk.cyan(`Trade aggregato: ${JSON.stringify(trade)}`));
     this.aggregateCandle(trade, config.timeFrame);
     this.aggregateCandle(trade, config.anchorPeriod);
+
+    // Aggiungo il trade al buffer per l'aggregazione dell'ultimo dato
+    this.lastTradeBuffer.push(trade);
 
     const tfCandles = this.candles.get(config.timeFrame) || [];
     const apCandles = this.candles.get(config.anchorPeriod) || [];
@@ -145,6 +152,54 @@ class DataAggregator {
       this.saveCandlesToFile(config.timeFrame);
       this.saveCandlesToFile(config.anchorPeriod);
     }, 60 * 1000);
+  }
+
+  // Nuova funzione per aggregare l'ultimo dato
+  async aggregateLastData() {
+    if (this.lastTradeBuffer.length === 0) return;
+
+    const now = Date.now();
+    const tradesToAggregate = this.lastTradeBuffer.filter(t => now - t.timestamp <= 500); // Ultimi 0,5 secondi
+    this.lastTradeBuffer = []; // Pulisco il buffer
+
+    if (tradesToAggregate.length === 0) return;
+
+    // Calcolo la media dei prezzi
+    const totalPrice = tradesToAggregate.reduce((sum, trade) => sum + trade.price, 0);
+    const avgPrice = totalPrice / tradesToAggregate.length;
+
+    // Somma dei volumi
+    const totalVolumeBuy = tradesToAggregate
+      .filter(t => t.side === 'Buy')
+      .reduce((sum, trade) => sum + (trade.volume || 0), 0);
+    const totalVolumeSell = tradesToAggregate
+      .filter(t => t.side === 'Sell')
+      .reduce((sum, trade) => sum + (trade.volume || 0), 0);
+
+    // Ultimo dato aggregato
+    this.lastAggregatedData = {
+      timestamp: now,
+      price: avgPrice,
+      volumeBuy: totalVolumeBuy,
+      volumeSell: totalVolumeSell,
+      cvd: totalVolumeBuy - totalVolumeSell,
+    };
+
+    // Salvo su file
+    const filePath = path.join(__dirname, '../data', 'last_aggregated_trade.json');
+    try {
+      await fs.writeFile(filePath, JSON.stringify(this.lastAggregatedData, null, 2));
+      console.log(chalk.gray(`Ultimo dato aggregato salvato in ${filePath}: Prezzo medio ${avgPrice}, Volumi ${totalVolumeBuy}/${totalVolumeSell}`));
+    } catch (error) {
+      console.error(chalk.red(`Errore nel salvare ${filePath}: ${error.message}`));
+    }
+  }
+
+  // Avvio aggregazione periodica ogni 0,5 secondi
+  startLastDataAggregation() {
+    setInterval(() => {
+      this.aggregateLastData();
+    }, 500);
   }
 
   getAggregatedData(timeframe) {

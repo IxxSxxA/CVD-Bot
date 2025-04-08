@@ -1,7 +1,6 @@
 // src/exchanges/bybit.js
 import WebSocket from 'ws';
 import chalk from 'chalk';
-import DataAggregator from '../dataAggregator.js';
 import config from '../config.js';
 
 class BybitExchange {
@@ -12,7 +11,7 @@ class BybitExchange {
     this.baseWsUrl = 'wss://stream.bybit.com/v5/public/linear';
     this.baseRestUrl = config.testnet ? 'https://api-testnet.bybit.com' : 'https://api.bybit.com';
     this.connected = false;
-    this.dataAggregator = new DataAggregator();
+    this.onTradeCallback = null; // Callback per passare i trade a bot.js
   }
 
   normalizeTrade(rawTrade) {
@@ -79,10 +78,16 @@ class BybitExchange {
       const tradeData = message.data[0];
       const trade = this.normalizeTrade(tradeData);
       console.log(chalk.gray(`Trade ricevuto: ${JSON.stringify(trade)}`));
-      this.dataAggregator.processTrade(trade);
+      if (this.onTradeCallback) {
+        this.onTradeCallback(trade); // Passo il trade al callback
+      }
     } else {
       console.log(chalk.gray('Messaggio ricevuto da Bybit:'), message);
     }
+  }
+
+  onTrade(callback) {
+    this.onTradeCallback = callback; // Metodo per registrare il callback
   }
 
   async disconnectWebSocket() {

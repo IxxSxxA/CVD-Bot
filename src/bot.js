@@ -5,7 +5,8 @@ import chalk from 'chalk';
 import { fileURLToPath } from 'url';
 import readline from 'readline';
 import config from './config.js';
-import CVDS from './cvdStrategy.js';
+import CvdStrategy from './cvdStrategy.js';
+import DataAggregator from './dataAggregator.js'; // Importo DataAggregator
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -26,14 +27,12 @@ async function appendToLog(message) {
 // Funzione per verificare i parametri di configurazione
 function verifyConfig(config) {
   const requiredParams = {
-    apiKey: 'string',
-    apiSecret: 'string',
     symbol: 'string',
     category: ['linear', 'spot', 'inverse'],
     testnet: [true, false],
     timeFrame: ['1m', '3m', '5m', '15m', '1h'],
     anchorPeriod: ['1m', '3m', '5m', '15m', '1h'],
-    entryMode: ['FVGs'],
+    // entryMode: ['FVGs'],
     fvgSensitivity: 'number',
     fvgAtrPeriod: 'number',
     cvdAtrPeriod: 'number',
@@ -56,14 +55,12 @@ function verifyConfig(config) {
   }
 
   console.log(chalk.blue('Parametri di configurazione verificati:'));
-  console.log(chalk.gray(`- API Key: ${config.apiKey.slice(0, 4)}... (nascosta)`));
-  console.log(chalk.gray(`- API Secret: ${config.apiSecret.slice(0, 4)}... (nascosta)`));
   console.log(chalk.gray(`- Symbol: ${config.symbol}`));
   console.log(chalk.gray(`- Category: ${config.category}`));
   console.log(chalk.gray(`- Testnet: ${config.testnet}`));
   console.log(chalk.gray(`- Timeframe grafico: ${config.timeFrame}`));
   console.log(chalk.gray(`- Anchor Period: ${config.anchorPeriod}`));
-  console.log(chalk.gray(`- Entry Mode: ${config.entryMode}`));
+  // console.log(chalk.gray(`- Entry Mode: ${config.entryMode}`));
   console.log(chalk.gray(`- FVG Sensitivity: ${config.fvgSensitivity}`));
   console.log(chalk.gray(`- FVG ATR Period: ${config.fvgAtrPeriod}`));
   console.log(chalk.gray(`- CVD ATR Period: ${config.cvdAtrPeriod}`));
@@ -87,8 +84,9 @@ function waitForEnter() {
 class TradingBot {
   constructor() {
     this.exchanges = new Map();
-    this.running = false;
     this.strategies = new Map();
+    this.running = false;
+    this.aggregator = new DataAggregator(); // Istanza unica di DataAggregator
   }
 
   async loadExchanges() {
@@ -101,7 +99,7 @@ class TradingBot {
           const { default: ExchangeModule } = await import(`./exchanges/${exchangeName}.js`);
           const exchangeInstance = new ExchangeModule();
           this.exchanges.set(exchangeName, exchangeInstance);
-          this.strategies.set(exchangeName, new CVDS(exchangeInstance.dataAggregator));
+          this.strategies.set(exchangeName, new CvdStrategy());
           console.log(chalk.green(`Exchange caricato: ${exchangeName}`));
         }
       }
@@ -114,17 +112,27 @@ class TradingBot {
   async clearDataFolder() {
     const dataDir = path.join(__dirname, '../data');
     try {
+      await fs.rm(dataDir, { recursive: true, force: true });
       await fs.mkdir(dataDir, { recursive: true });
-      const files = await fs.readdir(dataDir);
-      for (const file of files) {
-        await fs.unlink(path.join(dataDir, file));
-        console.log(chalk.gray(`File cancellato: ${file}`));
+      console.log(chalk.gray('Cartella data/ cancellata e ricreata'));
+    } catch (error) {
+      console.error(chalk.red(`Errore nella cancellazione dei file in data/: ${error.message}`));
+    }
+  }
+
+  async initializeDataFiles() {
+    const dataDir = path.join(__dirname, '../data');
+    try {
+      const timeframes = [config.timeFrame, config.anchorPeriod];
+      for (const timeframe of timeframes) {
+        const filePath = path.join(dataDir, `candles_${timeframe}.json`);
+        await fs.writeFile(filePath, JSON.stringify([]), { flag: 'w' });
+        console.log(chalk.gray(`File inizializzato: candles_${timeframe}.json`));
       }
-      // Crea signals.log vuoto
       await fs.writeFile(signalsLogPath, '', { flag: 'w' });
       console.log(chalk.gray('File signals.log creato'));
     } catch (error) {
-      console.error(chalk.red(`Errore nella cancellazione dei file in data/: ${error.message}`));
+      console.error(chalk.red(`Errore nell'inizializzazione dei file in data/: ${error.message}`));
     }
   }
 
@@ -132,6 +140,13 @@ class TradingBot {
     for (const [name, exchange] of this.exchanges) {
       try {
         await exchange.initialize();
+        // Passo i trade dall'exchange all'aggregator
+        exchange.onTrade((trade) => {
+          this.aggregator.processTrade(trade);
+          // Passo il trade anche alla strategia corrispondente
+          const strategy = this.strategies.get(name);
+          strategy.onWebSocketData(trade);
+        });
         console.log(chalk.cyan(`Inizializzato ${name}`));
       } catch (error) {
         console.error(chalk.red(`Errore nell'inizializzazione di ${name}: ${error.message}`));
@@ -141,7 +156,7 @@ class TradingBot {
 
   async start() {
     if (this.running) {
-      consolesignalsLogPath.log(chalk.yellow('Il bot è già in esecuzione.'));
+      console.log(chalk.yellow('Il bot è già in esecuzione.'));
       return;
     }
 
@@ -151,35 +166,40 @@ class TradingBot {
     // Verifica configurazione
     verifyConfig(config);
 
-    // Cancella i file in data/ e crea signals.log
+    // Cancella i file in data/
     await this.clearDataFolder();
 
     // Carica gli exchange
     await this.loadExchanges();
 
-    // Pausa per l'utente
+    // Pausa per l'utente, dopo la quale inizializzo i file
     await waitForEnter();
+    await this.initializeDataFiles();
+
+    // Carica i dati delle candele per tutte le strategie
+    for (const [exchangeName, strategy] of this.strategies) {
+      await strategy.loadCandles();
+      console.log(chalk.gray(`Candele caricate per ${exchangeName}`));
+    }
 
     // Inizializza exchange (REST + WebSocket)
     await this.initializeWebSockets();
 
-    // Avvia il processamento dei dati
-    for (const [exchangeName, exchange] of this.exchanges) {
-      setInterval(() => {
-        const strategy = this.strategies.get(exchangeName);
-        strategy.process();
-        console.log(chalk.gray(`Processamento dati per ${exchangeName}`));
-        // Salva segnali nel log file
-        const signals = strategy.getSignals();
-        signals.forEach(signal => {
-          const logMessage = `${signal.type} Signal @ ${new Date(signal.timestamp).toISOString()} - Price: ${signal.price} [${exchangeName}]`;
-          if (config.logSignals) {
-            console.log(chalk.green(logMessage));
+    // Avvia il processamento dei segnali (rimuovo il setInterval precedente)
+    for (const [exchangeName, strategy] of this.strategies) {
+      setInterval(async () => {
+        const signals = strategy.activeTrade ? [strategy.activeTrade] : [];
+        for (const signal of signals) {
+          if (!signal.logged) {
+            const logMessage = `${signal.entryType} Signal @ ${new Date(signal.entryTime).toISOString()} - Price: ${signal.entryPrice}, SL: ${signal.slTarget}, TP: ${signal.tpTarget} [${exchangeName}]`;
+            if (config.logSignals) {
+              console.log(chalk.green(logMessage));
+            }
+            await appendToLog(logMessage);
+            signal.logged = true;
           }
-          appendToLog(logMessage);
-        });
-        // Pulisci segnali processati per evitare duplicati
-        strategy.signals = strategy.signals.filter(s => !signals.includes(s));
+        }
+        console.log(chalk.gray(`Processamento segnali per ${exchangeName}`));
       }, 1000);
     }
 

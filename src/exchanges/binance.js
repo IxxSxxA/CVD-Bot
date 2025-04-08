@@ -1,14 +1,13 @@
 // src/exchanges/binance.js
 import WebSocket from 'ws';
 import chalk from 'chalk';
-import DataAggregator from '../dataAggregator.js';
 import config from '../config.js';
 
 class BinanceExchange {
   constructor() {
     this.ws = null;
-    this.dataAggregator = new DataAggregator();
     this.symbol = config.symbol.toLowerCase().replace('usdt', ''); // Es. BTCUSDT -> btc
+    this.onTradeCallback = null; // Callback per passare i trade a bot.js
   }
 
   async initialize() {
@@ -47,7 +46,13 @@ class BinanceExchange {
       price: parseFloat(trade.p), // Prezzo
       timestamp: trade.T // Timestamp in ms
     };
-    this.dataAggregator.processTrade(processedTrade);
+    if (this.onTradeCallback) {
+      this.onTradeCallback(processedTrade); // Passo il trade al callback
+    }
+  }
+
+  onTrade(callback) {
+    this.onTradeCallback = callback; // Metodo per registrare il callback
   }
 
   async disconnectWebSocket() {
