@@ -10,10 +10,8 @@ import DataAggregator from './dataAggregator.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// File di log per i segnali
 const signalsLogPath = path.join(__dirname, '../data/signals.log');
 
-// Funzione per appendere al file di log
 async function appendToLog(message) {
   try {
     const timestamp = new Date().toISOString();
@@ -24,7 +22,6 @@ async function appendToLog(message) {
   }
 }
 
-// Funzione per verificare i parametri di configurazione
 function verifyConfig(config) {
   const requiredParams = {
     symbol: 'string',
@@ -65,7 +62,6 @@ function verifyConfig(config) {
   console.log(chalk.gray(`- Log Signals: ${config.logSignals}`));
 }
 
-// Funzione per attendere l'input dell'utente
 function waitForEnter() {
   return new Promise((resolve) => {
     const rl = readline.createInterface({
@@ -84,7 +80,7 @@ class TradingBot {
     this.exchanges = new Map();
     this.strategies = new Map();
     this.running = false;
-    this.aggregator = new DataAggregator(); // Istanza unica di DataAggregator
+    this.aggregator = new DataAggregator();
   }
 
   async resetDataFolder() {
@@ -130,9 +126,9 @@ class TradingBot {
     for (const [name, exchange] of this.exchanges) {
       try {
         await exchange.initialize();
+        const strategy = this.strategies.get(name);
         exchange.onTrade((trade) => {
           this.aggregator.processTrade(trade);
-          const strategy = this.strategies.get(name);
           strategy.onWebSocketData(trade);
         });
         console.log(chalk.cyan(`Inizializzato ${name}`));
@@ -151,22 +147,12 @@ class TradingBot {
     console.log(chalk.blue('Avvio del Trading Bot per la strategia CVD...'));
     this.running = true;
 
-    // Verifica configurazione
     verifyConfig(config);
-
-    // Resetta la directory data/ all'avvio
     await this.resetDataFolder();
-
-    // Carica gli exchange
     await this.loadExchanges();
-
-    // Pausa per l'utente prima di avviare WebSocket
     await waitForEnter();
-
-    // Inizializza WebSocket
     await this.initializeWebSockets();
 
-    // Avvia il processamento dei segnali
     for (const [exchangeName, strategy] of this.strategies) {
       setInterval(async () => {
         const signals = strategy.activeTrade ? [strategy.activeTrade] : [];
@@ -208,7 +194,6 @@ const bot = new TradingBot();
 async function main() {
   try {
     await bot.start();
-
     process.on('SIGINT', async () => {
       console.log(chalk.yellow('\nRicevuto SIGINT. Arresto del bot...'));
       await bot.stop();
