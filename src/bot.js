@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 import readline from 'readline';
 import config from './config.js';
 import CvdStrategy from './cvdStrategy.js';
-import DataAggregator from './dataAggregator.js'; // Importo DataAggregator
+import DataAggregator from './dataAggregator.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -32,7 +32,6 @@ function verifyConfig(config) {
     testnet: [true, false],
     timeFrame: ['1m', '3m', '5m', '15m', '1h'],
     anchorPeriod: ['1m', '3m', '5m', '15m', '1h'],
-    // entryMode: ['FVGs'],
     fvgSensitivity: 'number',
     fvgAtrPeriod: 'number',
     cvdAtrPeriod: 'number',
@@ -60,7 +59,6 @@ function verifyConfig(config) {
   console.log(chalk.gray(`- Testnet: ${config.testnet}`));
   console.log(chalk.gray(`- Timeframe grafico: ${config.timeFrame}`));
   console.log(chalk.gray(`- Anchor Period: ${config.anchorPeriod}`));
-  // console.log(chalk.gray(`- Entry Mode: ${config.entryMode}`));
   console.log(chalk.gray(`- FVG Sensitivity: ${config.fvgSensitivity}`));
   console.log(chalk.gray(`- FVG ATR Period: ${config.fvgAtrPeriod}`));
   console.log(chalk.gray(`- CVD ATR Period: ${config.cvdAtrPeriod}`));
@@ -89,6 +87,25 @@ class TradingBot {
     this.aggregator = new DataAggregator(); // Istanza unica di DataAggregator
   }
 
+  async resetDataFolder() {
+    const dataDir = path.join(__dirname, '../data');
+    try {
+      await fs.rm(dataDir, { recursive: true, force: true });
+      await fs.mkdir(dataDir, { recursive: true });
+      const timeframes = [config.timeFrame, config.anchorPeriod];
+      for (const timeframe of timeframes) {
+        const filePath = path.join(dataDir, `candles_${timeframe}.json`);
+        await fs.writeFile(filePath, JSON.stringify([]), { flag: 'w' });
+        console.log(chalk.gray(`File inizializzato: candles_${timeframe}.json`));
+      }
+      await fs.writeFile(signalsLogPath, '', { flag: 'w' });
+      console.log(chalk.gray('File signals.log creato'));
+      console.log(chalk.gray('Cartella data/ resettata e inizializzata'));
+    } catch (error) {
+      console.error(chalk.red(`Errore nel reset della directory data/: ${error.message}`));
+    }
+  }
+
   async loadExchanges() {
     const exchangesDir = path.join(__dirname, 'exchanges');
     try {
@@ -109,41 +126,12 @@ class TradingBot {
     }
   }
 
-  async clearDataFolder() {
-    const dataDir = path.join(__dirname, '../data');
-    try {
-      await fs.rm(dataDir, { recursive: true, force: true });
-      await fs.mkdir(dataDir, { recursive: true });
-      console.log(chalk.gray('Cartella data/ cancellata e ricreata'));
-    } catch (error) {
-      console.error(chalk.red(`Errore nella cancellazione dei file in data/: ${error.message}`));
-    }
-  }
-
-  async initializeDataFiles() {
-    const dataDir = path.join(__dirname, '../data');
-    try {
-      const timeframes = [config.timeFrame, config.anchorPeriod];
-      for (const timeframe of timeframes) {
-        const filePath = path.join(dataDir, `candles_${timeframe}.json`);
-        await fs.writeFile(filePath, JSON.stringify([]), { flag: 'w' });
-        console.log(chalk.gray(`File inizializzato: candles_${timeframe}.json`));
-      }
-      await fs.writeFile(signalsLogPath, '', { flag: 'w' });
-      console.log(chalk.gray('File signals.log creato'));
-    } catch (error) {
-      console.error(chalk.red(`Errore nell'inizializzazione dei file in data/: ${error.message}`));
-    }
-  }
-
   async initializeWebSockets() {
     for (const [name, exchange] of this.exchanges) {
       try {
         await exchange.initialize();
-        // Passo i trade dall'exchange all'aggregator
         exchange.onTrade((trade) => {
           this.aggregator.processTrade(trade);
-          // Passo il trade anche alla strategia corrispondente
           const strategy = this.strategies.get(name);
           strategy.onWebSocketData(trade);
         });
@@ -166,26 +154,19 @@ class TradingBot {
     // Verifica configurazione
     verifyConfig(config);
 
-    // Cancella i file in data/
-    await this.clearDataFolder();
+    // Resetta la directory data/ all'avvio
+    await this.resetDataFolder();
 
     // Carica gli exchange
     await this.loadExchanges();
 
-    // Pausa per l'utente, dopo la quale inizializzo i file
+    // Pausa per l'utente prima di avviare WebSocket
     await waitForEnter();
-    await this.initializeDataFiles();
 
-    // Carica i dati delle candele per tutte le strategie
-    for (const [exchangeName, strategy] of this.strategies) {
-      await strategy.loadCandles();
-      console.log(chalk.gray(`Candele caricate per ${exchangeName}`));
-    }
-
-    // Inizializza exchange (REST + WebSocket)
+    // Inizializza WebSocket
     await this.initializeWebSockets();
 
-    // Avvia il processamento dei segnali (rimuovo il setInterval precedente)
+    // Avvia il processamento dei segnali
     for (const [exchangeName, strategy] of this.strategies) {
       setInterval(async () => {
         const signals = strategy.activeTrade ? [strategy.activeTrade] : [];
