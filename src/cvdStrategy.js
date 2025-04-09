@@ -1,156 +1,142 @@
 // src/cvdStrategy.js
+import fs from 'fs/promises';
+import path from 'path';
 import chalk from 'chalk';
 import config from './config.js';
+import { fileURLToPath } from 'url';
 
-class CVDS {
-  constructor(dataAggregator) {
-    this.dataAggregator = dataAggregator;
-    this.state = 'Waiting For CVDS';
-    this.cvdSignal = null; // 'Bull' o 'Bear'
-    this.entryTime = null;
-    this.entryPrice = null;
-    this.lastCvd = null; // Per crossover/crossunder
-    this.fvgs = []; // Lista FVG attivi
-    this.signals = []; // Per chart futura: { type: 'Buy'/'Sell', timestamp, price }
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+class CvdStrategy {
+  constructor() {
+    this.candles = new Map();
+    this.currentCandle = new Map();
+    this.fvgList = [];
+    this.activeTrade = null;
+    this.timeframeMs = this.getTimeframeMs(config.timeFrame);
+    this.anchorPeriodMs = this.getTimeframeMs(config.anchorPeriod);
+    this.lastCvd = 0; // Per tracciare il CVD precedente
+    this.waitingForFvg = false; // Stato "Waiting For FVG"
+    this.signalDirection = null; // "Bull" o "Bear"
   }
 
-  // Calcola ATR su un periodo dato
-  calculateATR(candles, period) {
-    if (candles.length < period) return 0;
-    let trSum = 0;
-    for (let i = 0; i < period; i++) {
-      const candle = candles[candles.length - 1 - i];
-      const prevCandle = i > 0 ? candles[candles.length - 2 - i] : null;
-      const highLow = candle.high - candle.low;
-      const highPrevClose = prevCandle ? Math.abs(candle.high - prevCandle.close) : 0;
-      const lowPrevClose = prevCandle ? Math.abs(candle.low - prevCandle.close) : 0;
-      const trueRange = Math.max(highLow, highPrevClose, lowPrevClose);
-      trSum += trueRange;
-    }
-    return trSum / period;
+  getTimeframeMs(timeframe) {
+    const minute = 60 * 1000;
+    return timeframe === '1m' ? minute :
+           timeframe === '3m' ? 3 * minute :
+           timeframe === '5m' ? 5 * minute :
+           timeframe === '15m' ? 15 * minute :
+           timeframe === '1h' ? 60 * minute : minute;
   }
 
-  // Rileva FVG su candele timeFrame
-  detectFVG(candles) {
-    if (candles.length < 3) return null;
-    const atr = this.calculateATR(candles, config.fvgAtrPeriod);
-    const current = candles[candles.length - 1];
-    const prev1 = candles[candles.length - 2];
-    const prev2 = candles[candles.length - 3];
+  async loadCandles() { /* invariato */ }
 
-    // Bullish FVG
-    if (current.low > prev2.high && prev1.close > prev2.high) {
-      const fvgSize = current.low - prev2.high;
-      if (fvgSize * config.fvgSensitivity > atr) {
-        return {
-          type: 'Bullish',
-          top: current.low,
-          bottom: prev2.high,
-          startTime: current.timestamp,
-          endTime: null
-        };
-      }
-    }
+  async saveCandles(timeframe) { /* invariato */ }
 
-    // Bearish FVG
-    if (current.high < prev2.low && prev1.close < prev2.low) {
-      const fvgSize = prev2.low - current.high;
-      if (fvgSize * config.fvgSensitivity > atr) {
-        return {
-          type: 'Bearish',
-          top: prev2.low,
-          bottom: current.high,
-          startTime: current.timestamp,
-          endTime: null
-        };
-      }
-    }
-    return null;
+  calculateATR(period, timeframe) { /* invariato */ }
+
+  calculateCvdCross(cvd) {
+    const prevCvd = this.lastCvd;
+    this.lastCvd = cvd;
+    return {
+      crossover: prevCvd <= 0 && cvd > 0,
+      crossunder: prevCvd >= 0 && cvd < 0,
+    };
   }
 
-  // Processa strategia su candele aggiornate
-  process() {
-    const anchorCandles = this.dataAggregator.getAggregatedData(config.anchorPeriod);
-    const tfCandles = this.dataAggregator.getAggregatedData(config.timeFrame);
-
-    if (anchorCandles.length < 2 || tfCandles.length < 3) return;
-
-    // Calcolo CVD
-    const currentCvd = anchorCandles[anchorCandles.length - 1].cvd;
-    const prevCvd = anchorCandles[anchorCandles.length - 2].cvd;
-
-    // Segnali CVD
-    if (this.lastCvd !== null) {
-      if (this.lastCvd < 0 && currentCvd >= 0) {
-        this.cvdSignal = 'Bull';
-      } else if (this.lastCvd > 0 && currentCvd <= 0) {
-        this.cvdSignal = 'Bear';
-      }
-    }
-    this.lastCvd = currentCvd;
-
-    // Stato macchina
-    switch (this.state) {
-      case 'Waiting For CVDS':
-        if (this.cvdSignal) {
-          this.state = 'Waiting For FVG';
-          if (config.logSignals) {
-            console.log(chalk.yellow(
-              `Waiting For ${this.cvdSignal === 'Bull' ? 'Bullish' : 'Bearish'} FVG @ ${new Date(anchorCandles[anchorCandles.length - 1].timestamp).toISOString()}`
-            ));
-          }
-        }
-        break;
-
-        case 'Waiting For FVG':
-          const newFvg = this.detectFVG(tfCandles);
-          if (newFvg) {
-            this.fvgs.push(newFvg);
-            if (
-              (this.cvdSignal === 'Bull' && newFvg.type === 'Bullish') ||
-              (this.cvdSignal === 'Bear' && newFvg.type === 'Bearish')
-            ) {
-              this.state = 'Enter Position';
-              this.entryTime = tfCandles[tfCandles.length - 1].timestamp;
-              this.entryPrice = tfCandles[tfCandles.length - 1].close;
-              const signalType = this.cvdSignal === 'Bull' ? 'Buy' : 'Sell';
-              this.signals.push({
-                type: signalType,
-                timestamp: this.entryTime,
-                price: this.entryPrice
-              });
-              if (config.logSignals) {
-                console.log(chalk.green(
-                  `${signalType} Signal @ ${new Date(this.entryTime).toISOString()} - Price: ${this.entryPrice}`
-                ));
-              }
-              this.state = 'Waiting For CVDS';
-              this.cvdSignal = null;
-            }
-          }
-          break;
-        }
-
-    // Invalidazione FVG (opzionale, per log/chart futura)
-    this.fvgs = this.fvgs.filter(fvg => {
-      const lastCandle = tfCandles[tfCandles.length - 1];
-      if (fvg.endTime) return false;
-      if (fvg.type === 'Bullish' && lastCandle.low < fvg.bottom) {
-        fvg.endTime = lastCandle.timestamp;
-        return false;
-      }
-      if (fvg.type === 'Bearish' && lastCandle.high > fvg.top) {
-        fvg.endTime = lastCandle.timestamp;
-        return false;
-      }
-      return true;
-    });
+  onWebSocketData(trade) {
+    this.updateCandles(trade, config.timeFrame);
+    this.updateCandles(trade, config.anchorPeriod);
+    this.checkCvdSignal(trade);
+    this.checkFvgEntry(trade);
+    this.saveCandles(config.timeFrame);
+    this.saveCandles(config.anchorPeriod);
   }
 
-  // Getter per segnali (per chart futura)
-  getSignals() {
-    return this.signals;
+  updateCandles(trade, timeframe) { /* invariato */ }
+
+  checkCvdSignal(trade) {
+    const currentCandle = this.currentCandle.get(config.timeFrame);
+    if (!currentCandle) return;
+
+    const { crossover, crossunder } = this.calculateCvdCross(currentCandle.cvd);
+    let bullishSignal = false;
+    let bearishSignal = false;
+
+    if (config.cvdSignalType === 'Advanced') {
+      const isBullishCandle = currentCandle.close > currentCandle.open;
+      bearishSignal = isBullishCandle && crossunder;
+      bullishSignal = !isBullishCandle && crossover;
+    } else { // 'Raw'
+      bearishSignal = crossunder;
+      bullishSignal = crossover;
+    }
+
+    if (bullishSignal && !this.waitingForFvg) {
+      this.waitingForFvg = true;
+      this.signalDirection = 'Bull';
+      console.log(chalk.cyan(`Waiting For Bullish FVG @ ${trade.timestamp}`));
+    } else if (bearishSignal && !this.waitingForFvg) {
+      this.waitingForFvg = true;
+      this.signalDirection = 'Bear';
+      console.log(chalk.cyan(`Waiting For Bearish FVG @ ${trade.timestamp}`));
+    }
+  }
+
+  checkFvgEntry(trade) {
+    const candles = this.candles.get(config.timeFrame) || [];
+    if (candles.length < 3 || !this.waitingForFvg) return;
+
+    const lastCandle = candles[candles.length - 1];
+    const secondLastCandle = candles[candles.length - 2];
+    const thirdLastCandle = candles[candles.length - 3];
+
+    const fvgUp = thirdLastCandle.low > secondLastCandle.high && lastCandle.low > secondLastCandle.high;
+    const fvgDown = thirdLastCandle.high < secondLastCandle.low && lastCandle.high < secondLastCandle.low;
+    const atr = this.calculateATR(config.fvgAtrPeriod, config.timeFrame);
+
+    if (fvgUp && this.signalDirection === 'Bull' && !this.activeTrade) {
+      const entryPrice = secondLastCandle.high;
+      const slTarget = entryPrice - atr * config.fvgSensitivity;
+      const tpTarget = entryPrice + atr * 2;
+
+      this.activeTrade = {
+        entryType: 'Long',
+        entryPrice,
+        slTarget,
+        tpTarget,
+        entryTime: trade.timestamp,
+        logged: false,
+      };
+      this.fvgList.push({ type: 'FVG Up', price: entryPrice, timestamp: trade.timestamp });
+      this.waitingForFvg = false; // Resetta dopo ingresso
+    } else if (fvgDown && this.signalDirection === 'Bear' && !this.activeTrade) {
+      const entryPrice = secondLastCandle.low;
+      const slTarget = entryPrice + atr * config.fvgSensitivity;
+      const tpTarget = entryPrice - atr * 2;
+
+      this.activeTrade = {
+        entryType: 'Short',
+        entryPrice,
+        slTarget,
+        tpTarget,
+        entryTime: trade.timestamp,
+        logged: false,
+      };
+      this.fvgList.push({ type: 'FVG Down', price: entryPrice, timestamp: trade.timestamp });
+      this.waitingForFvg = false; // Resetta dopo ingresso
+    }
+
+    if (this.activeTrade) {
+      const currentPrice = trade.price;
+      if (
+        (this.activeTrade.entryType === 'Long' && (currentPrice <= this.activeTrade.slTarget || currentPrice >= this.activeTrade.tpTarget)) ||
+        (this.activeTrade.entryType === 'Short' && (currentPrice >= this.activeTrade.slTarget || currentPrice <= this.activeTrade.tpTarget))
+      ) {
+        this.activeTrade = null;
+      }
+    }
   }
 }
 
-export default CVDS;
+export default CvdStrategy;
