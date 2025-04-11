@@ -1,3 +1,4 @@
+// src/currentCandleManager.js
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -8,67 +9,70 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 class CurrentCandleManager {
   constructor() {
-    this.currentCandle = null;
-    this.timeframeMs = this.getTimeframeMs(config.timeFrame);
-    this.initializeFile();
+    this.currentCandles = new Map();
+    this.initializeFiles();
   }
 
-  getTimeframeMs(timeframe) {
-    const minute = 60 * 1000;
-    return timeframe === '1m' ? minute :
-           timeframe === '3m' ? 3 * minute :
-           timeframe === '5m' ? 5 * minute :
-           timeframe === '15m' ? 15 * minute :
-           timeframe === '1h' ? 60 * minute : minute;
+  async initializeFiles() {
+    const timeframes = [config.timeFrame, config.anchorPeriod];
+    for (const tf of timeframes) {
+      this.currentCandles.set(tf, null);
+      const candleFile = path.join(__dirname, '../data', `candle_current_${tf}.json`);
+      await fs.writeFile(candleFile, JSON.stringify(null), { flag: 'w' });
+    }
   }
 
-  async initializeFile() {
-    const dataDir = path.join(__dirname, '../data');
+  async saveCurrentCandle(timeframe) {
+    const candle = this.currentCandles.get(timeframe);
+    const filePath = path.join(__dirname, '../data', `candle_current_${timeframe}.json`);
     try {
-      await fs.writeFile(
-        path.join(dataDir, `candle_current_${config.timeFrame}.json`),
-        JSON.stringify(null),
-        { flag: 'w' }
-      );
-      console.log(chalk.gray(`File candle_current_${config.timeFrame}.json inizializzato`));
+      await fs.writeFile(filePath, JSON.stringify(candle, null, 2));
     } catch (error) {
-      console.error(chalk.red(`Errore inizializzazione file candle_current: ${error.message}`));
+      console.error(chalk.red(`Errore nel salvataggio della candela corrente (${timeframe}): ${error.message}`));
     }
   }
 
-  updateCurrentCandle(trade) {
-    const timestamp = Math.floor(trade.timestamp / this.timeframeMs) * this.timeframeMs;
+  async processTrade(trade) {
+    const timeframes = [config.timeFrame, config.anchorPeriod];
+    for (const tf of timeframes) {
+      const interval = this.parseTimeframe(tf);
+      const timestamp = Math.floor(trade.timestamp / interval) * interval;
+      let candle = this.currentCandles.get(tf);
 
-    if (!this.currentCandle || this.currentCandle.timestamp < timestamp) {
-      this.currentCandle = {
-        timestamp,
-        open: trade.price,
-        high: trade.price,
-        low: trade.price,
-        close: trade.price,
-        volumeBuy: 0,
-        volumeSell: 0,
-        cvd: 0 // Inizia a 0 per la nuova candela
-      };
+      if (!candle || candle.timestamp !== timestamp) {
+        if (candle) {
+          await this.saveCurrentCandle(tf);
+        }
+        candle = {
+          timestamp,
+          open: trade.price,
+          high: trade.price,
+          low: trade.price,
+          close: trade.price,
+          volumeBuy: 0,
+          volumeSell: 0,
+          cvd: 0,
+        };
+        this.currentCandles.set(tf, candle);
+      }
+
+      candle.high = Math.max(candle.high, trade.price);
+      candle.low = Math.min(candle.low, trade.price);
+      candle.close = trade.price;
+      if (trade.side === 'Buy') {
+        candle.volumeBuy += trade.size;
+        candle.cvd += trade.size;
+      } else {
+        candle.volumeSell += trade.size;
+        candle.cvd -= trade.size;
+      }
     }
-
-    this.currentCandle.high = Math.max(this.currentCandle.high, trade.price);
-    this.currentCandle.low = Math.min(this.currentCandle.low, trade.price);
-    this.currentCandle.close = trade.price;
-    this.currentCandle.volumeBuy += trade.side === 'Buy' ? trade.volume : 0;
-    this.currentCandle.volumeSell += trade.side === 'Sell' ? trade.volume : 0;
-    this.currentCandle.cvd += (trade.side === 'Buy' ? trade.volume : 0) - (trade.side === 'Sell' ? trade.volume : 0);
-
-    this.saveCurrentCandle();
   }
 
-  async saveCurrentCandle() {
-    const filePath = path.join(__dirname, '../data', `candle_current_${config.timeFrame}.json`);
-    try {
-      await fs.writeFile(filePath, JSON.stringify(this.currentCandle, null, 2));
-    } catch (error) {
-      console.error(chalk.red(`Errore salvataggio candle_current_${config.timeFrame}.json: ${error.message}`));
-    }
+  parseTimeframe(tf) {
+    const unit = tf.slice(-1);
+    const value = parseInt(tf.slice(0, -1));
+    return unit === 'm' ? value * 60 * 1000 : value * 60 * 60 * 1000;
   }
 }
 

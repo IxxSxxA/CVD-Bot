@@ -1,1 +1,931 @@
-[{"timestamp":1744219500000,"open":81075.8,"high":81240,"low":80528.6,"close":80804.01,"volumeBuy":760.0054700001496,"volumeSell":810.3046900000934,"cvd":-50.29921999999987},{"timestamp":1744219800000,"open":80809.9,"high":81754.1,"low":80804.02,"close":81531,"volumeBuy":1857.3072600002154,"volumeSell":1532.737650000264,"cvd":274.2703900000156},{"timestamp":1744220100000,"open":81507.5,"high":81888.86,"low":81154,"close":81192.33,"volumeBuy":1324.748840000274,"volumeSell":1599.4786600003604,"cvd":-0.45942999995911765},{"timestamp":1744220400000,"open":81171.6,"high":81519.02,"low":80837,"close":80951.42,"volumeBuy":850.2118700000949,"volumeSell":1037.91162000014,"cvd":-188.1591799999598},{"timestamp":1744220700000,"open":80949.6,"high":81730.1,"low":80949.6,"close":81333.1,"volumeBuy":857.9119300001787,"volumeSell":785.8106100000879,"cvd":-116.05785999996495},{"timestamp":1744221000000,"open":81333.1,"high":81452.18,"low":81265.7,"close":81333.9,"volumeBuy":37.356720000000436,"volumeSell":53.280320000000415,"cvd":-131.98145999996635}]
+[
+  {
+    "timestamp": 1744234500000,
+    "open": 82948.3,
+    "high": 82988.59,
+    "low": 82850,
+    "close": 82901.7,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744234800000,
+    "open": 82857.4,
+    "high": 83079.28,
+    "low": 82853.8,
+    "close": 82954.22,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744235100000,
+    "open": 82909.8,
+    "high": 83226.94,
+    "low": 82863.8,
+    "close": 83150,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744235400000,
+    "open": 83150.01,
+    "high": 83275.53,
+    "low": 82911.6,
+    "close": 83220.2,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744235700000,
+    "open": 83261.88,
+    "high": 83388,
+    "low": 83138.4,
+    "close": 83284.29,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744236000000,
+    "open": 83244.7,
+    "high": 83487.2,
+    "low": 83219.3,
+    "close": 83304.2,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744236300000,
+    "open": 83333.65,
+    "high": 83356.47,
+    "low": 83060,
+    "close": 83311.27,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744236600000,
+    "open": 83273.3,
+    "high": 83438.43,
+    "low": 83225.8,
+    "close": 83292.85,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744236900000,
+    "open": 83258.1,
+    "high": 83493.6,
+    "low": 83258.1,
+    "close": 83422.5,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744237200000,
+    "open": 83422.5,
+    "high": 83460,
+    "low": 83232.8,
+    "close": 83282.1,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744237500000,
+    "open": 83257.7,
+    "high": 83434.78,
+    "low": 83225.2,
+    "close": 83361.56,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744237800000,
+    "open": 83327.1,
+    "high": 83500,
+    "low": 83158.6,
+    "close": 83206,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744238100000,
+    "open": 83205.9,
+    "high": 83321.21,
+    "low": 83109.9,
+    "close": 83163.01,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744238400000,
+    "open": 83118.2,
+    "high": 83194.78,
+    "low": 82974.5,
+    "close": 83037.99,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744238700000,
+    "open": 82992,
+    "high": 83102,
+    "low": 82907.9,
+    "close": 83064.86,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744239000000,
+    "open": 83064.86,
+    "high": 83085.74,
+    "low": 82934.5,
+    "close": 82994.1,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744239300000,
+    "open": 82994,
+    "high": 83091.53,
+    "low": 82947.8,
+    "close": 83056.83,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744239600000,
+    "open": 83027.8,
+    "high": 83156.49,
+    "low": 82956.3,
+    "close": 83011.33,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744239900000,
+    "open": 82991.7,
+    "high": 83133.97,
+    "low": 82991.6,
+    "close": 83120.78,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744240200000,
+    "open": 83120.79,
+    "high": 83143.79,
+    "low": 82971.7,
+    "close": 83018.31,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744240500000,
+    "open": 82993.7,
+    "high": 83018.31,
+    "low": 82838.9,
+    "close": 82892.7,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744240800000,
+    "open": 82892.6,
+    "high": 82952.54,
+    "low": 82752,
+    "close": 82752.1,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744241100000,
+    "open": 82752,
+    "high": 82834.8,
+    "low": 82689.4,
+    "close": 82750.1,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744241400000,
+    "open": 82750,
+    "high": 82750,
+    "low": 82745.3,
+    "close": 82745.3,
+    "volumeBuy": 0,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744241100000,
+    "open": 82776.01,
+    "high": 82776.01,
+    "low": 82773.52,
+    "close": 82773.52,
+    "volumeBuy": 0,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744241400000,
+    "open": 82744.7,
+    "high": 82850,
+    "low": 82690,
+    "close": 82827.4,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744241700000,
+    "open": 82827.4,
+    "high": 82850,
+    "low": 82668.4,
+    "close": 82717.57,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744242000000,
+    "open": 82717.57,
+    "high": 82788.76,
+    "low": 82687.8,
+    "close": 82758.3,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744242300000,
+    "open": 82778.03,
+    "high": 82778.03,
+    "low": 82631,
+    "close": 82631,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744242600000,
+    "open": 82650.01,
+    "high": 82699.99,
+    "low": 82555.4,
+    "close": 82619.88,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744242900000,
+    "open": 82599.9,
+    "high": 82619.89,
+    "low": 82510.5,
+    "close": 82615.22,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744243200000,
+    "open": 82615.22,
+    "high": 82662.27,
+    "low": 82512.7,
+    "close": 82603.49,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744243500000,
+    "open": 82589.1,
+    "high": 82753.21,
+    "low": 82502.5,
+    "close": 82535.7,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744243800000,
+    "open": 82510.1,
+    "high": 82544.81,
+    "low": 82450,
+    "close": 82479.99,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744244100000,
+    "open": 82479.98,
+    "high": 82616.79,
+    "low": 82382.89,
+    "close": 82442.2,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744244400000,
+    "open": 82442.2,
+    "high": 82463.99,
+    "low": 82347,
+    "close": 82387.59,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744244700000,
+    "open": 82387.58,
+    "high": 82492.78,
+    "low": 82341,
+    "close": 82414.73,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744245000000,
+    "open": 82407.7,
+    "high": 82484.94,
+    "low": 82315.8,
+    "close": 82448.05,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744245300000,
+    "open": 82418,
+    "high": 82485.76,
+    "low": 82257.9,
+    "close": 82284.52,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744245600000,
+    "open": 82284.52,
+    "high": 82284.66,
+    "low": 82036.9,
+    "close": 82147.83,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744245900000,
+    "open": 82147.84,
+    "high": 82274.81,
+    "low": 82062.7,
+    "close": 82119.39,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744246200000,
+    "open": 82119.39,
+    "high": 82222.89,
+    "low": 82055,
+    "close": 82200,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744246500000,
+    "open": 82172.1,
+    "high": 82378.93,
+    "low": 82162.5,
+    "close": 82352.85,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744246800000,
+    "open": 82352.85,
+    "high": 82499.98,
+    "low": 82244,
+    "close": 82353.24,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744247100000,
+    "open": 82353.24,
+    "high": 82501.03,
+    "low": 82291.7,
+    "close": 82419.9,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744247400000,
+    "open": 82452.11,
+    "high": 82600,
+    "low": 82420,
+    "close": 82460.2,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744247700000,
+    "open": 82460.2,
+    "high": 82567.93,
+    "low": 82400,
+    "close": 82517.6,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744248000000,
+    "open": 82517.5,
+    "high": 82565.22,
+    "low": 82362.1,
+    "close": 82406.96,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744248300000,
+    "open": 82371.7,
+    "high": 82451.45,
+    "low": 82322,
+    "close": 82394.6,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744248600000,
+    "open": 82426.15,
+    "high": 82439.87,
+    "low": 82267.1,
+    "close": 82267.1,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744248900000,
+    "open": 82267.1,
+    "high": 82450,
+    "low": 82266.4,
+    "close": 82406.4,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744249200000,
+    "open": 82406.3,
+    "high": 82467.44,
+    "low": 82347.7,
+    "close": 82353.1,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744249500000,
+    "open": 82380.01,
+    "high": 82463.38,
+    "low": 82347.7,
+    "close": 82400.1,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744249800000,
+    "open": 82400,
+    "high": 82434.79,
+    "low": 82306.2,
+    "close": 82343.99,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744250100000,
+    "open": 82306.5,
+    "high": 82347.72,
+    "low": 82190,
+    "close": 82220.2,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744250400000,
+    "open": 82220.2,
+    "high": 82377.62,
+    "low": 82174,
+    "close": 82304.52,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744250700000,
+    "open": 82304.52,
+    "high": 82454.01,
+    "low": 82214.3,
+    "close": 82412.1,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744251000000,
+    "open": 82412.1,
+    "high": 82535.03,
+    "low": 82381.8,
+    "close": 82473.2,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744251300000,
+    "open": 82473.1,
+    "high": 82510.28,
+    "low": 82385.6,
+    "close": 82475.25,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744251600000,
+    "open": 82475.26,
+    "high": 82565.19,
+    "low": 82436.3,
+    "close": 82512.3,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744251900000,
+    "open": 82557.66,
+    "high": 82557.66,
+    "low": 82389.3,
+    "close": 82442.89,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744252200000,
+    "open": 82442.89,
+    "high": 82454.61,
+    "low": 82300,
+    "close": 82348.5,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744252500000,
+    "open": 82348.49,
+    "high": 82434.79,
+    "low": 82279.7,
+    "close": 82388.6,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744252800000,
+    "open": 82388.6,
+    "high": 82478.27,
+    "low": 82306.4,
+    "close": 82355.58,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744253100000,
+    "open": 82316,
+    "high": 82355.59,
+    "low": 82162.4,
+    "close": 82252.5,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744253400000,
+    "open": 82252.5,
+    "high": 82332.08,
+    "low": 82175.4,
+    "close": 82249.99,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744253700000,
+    "open": 82249.99,
+    "high": 82272.75,
+    "low": 82155.1,
+    "close": 82165.9,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744254000000,
+    "open": 82166,
+    "high": 82224.45,
+    "low": 82024.6,
+    "close": 82098.29,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744254300000,
+    "open": 82070,
+    "high": 82114.91,
+    "low": 81912.1,
+    "close": 81955.4,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744254600000,
+    "open": 81955.4,
+    "high": 81980,
+    "low": 81678.8,
+    "close": 81706.3,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744254900000,
+    "open": 81706.4,
+    "high": 81774.99,
+    "low": 81521.8,
+    "close": 81533.8,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744255200000,
+    "open": 81533.8,
+    "high": 81727.74,
+    "low": 81511,
+    "close": 81633.09,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744255500000,
+    "open": 81602.2,
+    "high": 81718.01,
+    "low": 81537.7,
+    "close": 81652.18,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744255800000,
+    "open": 81631.9,
+    "high": 81631.9,
+    "low": 81631.9,
+    "close": 81631.9,
+    "volumeBuy": 0,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744255500000,
+    "open": 81652.18,
+    "high": 81652.18,
+    "low": 81652.18,
+    "close": 81652.18,
+    "volumeBuy": null,
+    "volumeSell": 0,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744255800000,
+    "open": 81631.9,
+    "high": 81666,
+    "low": 81440.8,
+    "close": 81560,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744256100000,
+    "open": 81596.07,
+    "high": 81772,
+    "low": 81513.8,
+    "close": 81772,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744256400000,
+    "open": 81748.2,
+    "high": 81772,
+    "low": 81637.1,
+    "close": 81697.2,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744256700000,
+    "open": 81697.2,
+    "high": 81813.21,
+    "low": 81638.9,
+    "close": 81659.02,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744257000000,
+    "open": 81645.7,
+    "high": 81718.56,
+    "low": 81642.3,
+    "close": 81668.6,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744257300000,
+    "open": 81667.6,
+    "high": 81782.61,
+    "low": 81657,
+    "close": 81775.2,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744257600000,
+    "open": 81755.8,
+    "high": 81867,
+    "low": 81740,
+    "close": 81850,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744257900000,
+    "open": 81849.9,
+    "high": 81950,
+    "low": 81740.4,
+    "close": 81776.4,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744258200000,
+    "open": 81776.3,
+    "high": 81794.98,
+    "low": 81651.4,
+    "close": 81674.7,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744258500000,
+    "open": 81674.7,
+    "high": 81749.99,
+    "low": 81662.8,
+    "close": 81734.2,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744258800000,
+    "open": 81734.2,
+    "high": 81837.86,
+    "low": 81719.6,
+    "close": 81781.7,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744259100000,
+    "open": 81796.6,
+    "high": 81810.71,
+    "low": 81621.4,
+    "close": 81655.27,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744259400000,
+    "open": 81634.8,
+    "high": 81708,
+    "low": 81623.5,
+    "close": 81668.86,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744259700000,
+    "open": 81668.86,
+    "high": 81788.01,
+    "low": 81623.5,
+    "close": 81745.9,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744260000000,
+    "open": 81745.8,
+    "high": 81889.86,
+    "low": 81741.1,
+    "close": 81846.38,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744260300000,
+    "open": 81824.3,
+    "high": 81971.99,
+    "low": 81806.4,
+    "close": 81962.41,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744260600000,
+    "open": 81943.4,
+    "high": 81991,
+    "low": 81887.2,
+    "close": 81971.29,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  },
+  {
+    "timestamp": 1744260900000,
+    "open": 81971.3,
+    "high": 81975.8,
+    "low": 81932,
+    "close": 81938.3,
+    "volumeBuy": null,
+    "volumeSell": null,
+    "cvd": null
+  }
+]

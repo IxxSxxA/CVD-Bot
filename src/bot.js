@@ -9,7 +9,6 @@ import CvdStrategy from './cvdStrategy.js';
 import DataAggregator from './dataAggregator.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 const signalsLogPath = path.join(__dirname, '../data/signals.log');
 
 async function appendToLog(message) {
@@ -94,6 +93,13 @@ class TradingBot {
         await fs.writeFile(filePath, JSON.stringify([]), { flag: 'w' });
         console.log(chalk.gray(`File inizializzato: candles_${timeframe}.json`));
       }
+      // Crea config.json
+      const configData = { timeFrame: config.timeFrame };
+      await fs.writeFile(
+        path.join(dataDir, 'config.json'),
+        JSON.stringify(configData, null, 2)
+      );
+      console.log(chalk.gray('File config.json creato'));
       await fs.writeFile(signalsLogPath, '', { flag: 'w' });
       console.log(chalk.gray('File signals.log creato'));
       console.log(chalk.gray('Cartella data/ resettata e inizializzata'));

@@ -1,10 +1,10 @@
 {
-  "timestamp": 1744220880000,
-  "open": 81527.5,
-  "high": 81728,
-  "low": 81265.7,
-  "close": 81333.9,
-  "volumeBuy": 305.5954699999733,
-  "volumeSell": 372.47292999997427,
-  "cvd": -66.87745999999888
+  "timestamp": 1744260660000,
+  "open": 81938,
+  "high": 81962.16,
+  "low": 81887.2,
+  "close": 81913,
+  "volumeBuy": null,
+  "volumeSell": null,
+  "cvd": null
 }
