@@ -23,4 +23,5 @@ project/
 │   └── vite.config.js      # Configurazione Vite // Da fare se si usa vite altrimenti non serve ... 
 ├── .env                    # Chiavi connessione exchanges per trading // Non necessario al momento
 ├── package.json
+├── TS-fistTest.js          # Test playground for Tensorflow
 └── README.md               # questo file
