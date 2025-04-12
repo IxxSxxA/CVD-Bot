@@ -1,0 +1,19 @@
+{
+  "name": "plotly-trading",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "copy-candles": "node copy-candles.js",
+    "start": "npm run copy-candles & npm run dev",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^6.2.0"
+  },
+  "dependencies": {
+    "plotly.js-dist-min": "^3.0.1"
+  }
+}

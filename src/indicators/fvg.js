@@ -1,4 +1,3 @@
-// src/indicators/fvg.js
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -12,6 +11,9 @@ class FVG {
     this.atr = new ATR();
     this.liveFile = path.join(__dirname, '../../data/fvg_live.json');
     this.historyFile = path.join(__dirname, '../../data/fvg_history.json');
+    this.tempFile = path.join(__dirname, '../../data/fvg_history_temp.json');
+    this.lockFile = path.join(__dirname, '../../data/fvg_history.lock');
+    this.lastSaveTime = 0;
     this.initializeFiles();
   }
 
@@ -19,8 +21,47 @@ class FVG {
     try {
       await fs.writeFile(this.liveFile, JSON.stringify(null), { flag: 'w' });
       await fs.writeFile(this.historyFile, JSON.stringify([]), { flag: 'w' });
+      await this.cleanupLock();
     } catch (error) {
       console.error(`Errore inizializzazione file FVG: ${error.message}`);
+    }
+  }
+
+  async cleanupLock() {
+    try {
+      await fs.unlink(this.lockFile);
+    } catch (err) {
+      if (err.code !== 'ENOENT') {
+        console.error(`Errore pulizia lock FVG iniziale: ${err.message}`);
+      }
+    }
+  }
+
+  async acquireLock() {
+    const start = Date.now();
+    while (Date.now() - start < 10000) { // 10s timeout
+      try {
+        await fs.writeFile(this.lockFile, '', { flag: 'wx' });
+        return true;
+      } catch (err) {
+        if (err.code !== 'EEXIST') {
+          console.error(`Errore acquisizione lock FVG: ${err.message}`);
+          return false;
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    }
+    console.error('Timeout acquisizione lock FVG');
+    return false;
+  }
+
+  async releaseLock() {
+    try {
+      await fs.unlink(this.lockFile);
+    } catch (err) {
+      if (err.code !== 'ENOENT') {
+        console.error(`Errore rimozione lock FVG: ${err.message}`);
+      }
     }
   }
 
@@ -48,18 +89,32 @@ class FVG {
   }
 
   async saveData(fvg) {
+    const now = Date.now();
+    if (now - this.lastSaveTime < 3000) return; // Aspetta 3s tra scritture
+    this.lastSaveTime = now;
+
     try {
       await fs.writeFile(this.liveFile, JSON.stringify(fvg, null, 2));
-      let historyData;
-      try {
-        historyData = JSON.parse(await fs.readFile(this.historyFile, 'utf8'));
-        if (!Array.isArray(historyData)) throw new Error('History non è un array');
-      } catch (parseError) {
-        console.error(`File FVG_history corrotto, resetto: ${parseError.message}`);
-        historyData = []; // Resetta se corrotto
+
+      if (!(await this.acquireLock())) {
+        return;
       }
-      historyData.push(fvg);
-      await fs.writeFile(this.historyFile, JSON.stringify(historyData, null, 2));
+      try {
+        let historyData = [];
+        try {
+          const data = await fs.readFile(this.historyFile, 'utf8');
+          if (data) historyData = JSON.parse(data);
+          if (!Array.isArray(historyData)) throw new Error('History non è un array');
+        } catch (parseError) {
+          console.error(`File FVG_history corrotto, resetto: ${parseError.message}`);
+          historyData = [];
+        }
+        historyData.push(fvg);
+        await fs.writeFile(this.tempFile, JSON.stringify(historyData, null, 2));
+        await fs.rename(this.tempFile, this.historyFile);
+      } finally {
+        await this.releaseLock();
+      }
     } catch (error) {
       console.error(`Errore salvataggio dati FVG: ${error.message}`);
     }
